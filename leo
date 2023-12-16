@@ -71,7 +71,7 @@ class Browser:
             self.wrap_text = False
 
         self.wrap_width = 0
-        if (self.wrap_text and "wrap_width" in config):
+        if self.wrap_text and "wrap_width" in config:
             self.wrap_width = config["wrap_width"]
 
         self.cert_path = config["cert_path"]
@@ -238,7 +238,7 @@ class Browser:
 
     def _get_render_body(self, file: []) -> []:
         cols, _ = os.get_terminal_size()
-        if (self.wrap_text and self.wrap_width):
+        if self.wrap_text and self.wrap_width:
             cols = min(cols, self.wrap_width)
         final = []
         is_toggle_line = \
@@ -528,7 +528,7 @@ def get_hostname(url: str) -> str:
 
 
 def get_encoded(s: str) -> str:
-    return ((s + "\r\n").encode("UTF-8"))
+    return (s + "\r\n").encode("UTF-8")
 
 
 def get_link_from_line(line: str, browser: Browser) -> {}:
@@ -555,7 +555,7 @@ def get_link_from_line(line: str, browser: Browser) -> {}:
         "url": validated["final"],
         "text": _text,
         "render_line": "%s%s%s%d%s%s %s" % (
-        hlt["bold"], hlt["underline"], hlt["link_color"], len(browser.current_links), hlt["reset"], scheme, _text)
+            hlt["bold"], hlt["underline"], hlt["link_color"], len(browser.current_links), hlt["reset"], scheme, _text)
     }
 
 
@@ -884,7 +884,7 @@ if __name__ == "__main__":
         },
         "reload|r": {
             "fn": browser.reload,
-            "help": "Redisplays the current page. Type `reload hard` to redownload the page."
+            "help": "Re-displays the current page. Type `reload hard` to re-download the page."
         },
         "back|b": {
             "fn": browser.back,
@@ -981,4 +981,4 @@ if __name__ == "__main__":
             if FETCH:
                 break
         elif _TYPE == 0 and URL is None:
-            log_error("Invalid url specifed.")
+            log_error("Invalid url specified.")
