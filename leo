@@ -13,6 +13,7 @@ import ssl
 import sys
 import typing
 import urllib.parse
+import shutil
 
 DEFAULT_CONFIG = {
     "wrap_text": False,
@@ -175,10 +176,14 @@ class Browser:
                     with open(image_filename, 'wb') as fp_image:
                         fp_image.write(response_body)
                     # show image if a command is available
-                    if os.path.isfile('/usr/bin/timg'):
+                    if shutil.which("timg"):
                         os.system('timg ' + image_filename)
-                    elif os.path.isfile('/usr/bin/catimg'):
+                    elif shutil.which('catimg'):
                         os.system('catimg ' + image_filename)
+                    elif shutil.which('cacaview'):
+                        os.system('cacaview ' + image_filename)
+                    elif shutil.which('asciiview'):
+                        os.system('asciiview ' + image_filename)
                     # remove image after display
                     if os.path.isfile(image_filename):
                         try:
@@ -191,10 +196,13 @@ class Browser:
                     with open(media_filename, 'wb') as fp_media:
                         fp_media.write(response_body)
                     # show media if a command is available
-                    if os.path.isfile('/usr/bin/nvlc'):
+                    if shutil.which('nvlc'):
                         os.system('nvlc ' + media_filename)
-                    elif os.path.isfile('/usr/bin/cvlc'):
+                    elif shutil.which('cvlc'):
                         os.system('cvlc ' + media_filename)
+                    elif shutil.which('vlc'):
+                        os.system('vlc -Idummy ' + media_filename)
+
                     # remove media after display
                     if os.path.isfile(media_filename):
                         try:
