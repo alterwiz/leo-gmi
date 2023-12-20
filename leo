@@ -19,7 +19,27 @@ DEFAULT_CONFIG = {
     "wrap_text": False,
     "wrap_width": 0,
     "homepage": "",
-    "cert_path": ""
+    "cert_path": "",
+    "apps": {
+        "image": [
+            ['timg'],
+            ['catimg'],
+            ['chafa'],
+            ['cacaview'],
+            ['asciiview'],
+            ['img2sixel'],
+            ['quickascii']
+        ],
+        "media": [
+            ['cvlc'],
+            ['nvlc'],
+            ['vlc', '-Idummy'],
+            ['mplayer']
+        ],
+        "torrent": [
+            ['rtorrent']
+        ]
+    }
 }
 
 GEMINI_PORT = 1965
@@ -170,60 +190,17 @@ class Browser:
                         decoded = True
                     except UnicodeDecodeError:
                         log_info("Unable to decode", url)
-                elif detected_image_ext:
-                    # save image to be shown
-                    image_filename = '.leo_temp_image.' + detected_image_ext
-                    with open(image_filename, 'wb') as fp_image:
-                        fp_image.write(response_body)
-                    # show image if a command is available
-                    if shutil.which("timg"):
-                        os.system('timg ' + image_filename)
-                    elif shutil.which('catimg'):
-                        os.system('catimg ' + image_filename)
-                    elif shutil.which('cacaview'):
-                        os.system('cacaview ' + image_filename)
-                    elif shutil.which('asciiview'):
-                        os.system('asciiview ' + image_filename)
-                    # remove image after display
-                    if os.path.isfile(image_filename):
-                        try:
-                            os.remove(image_filename)
-                        except BaseException:
-                            pass
-                elif detected_media_ext:
-                    # save media to be shown
-                    media_filename = '.leo_temp_media.' + detected_media_ext
-                    with open(media_filename, 'wb') as fp_media:
-                        fp_media.write(response_body)
-                    # show media if a command is available
-                    if shutil.which('nvlc'):
-                        os.system('nvlc ' + media_filename)
-                    elif shutil.which('cvlc'):
-                        os.system('cvlc ' + media_filename)
-                    elif shutil.which('vlc'):
-                        os.system('vlc -Idummy ' + media_filename)
 
-                    # remove media after display
-                    if os.path.isfile(media_filename):
-                        try:
-                            os.remove(media_filename)
-                        except BaseException:
-                            pass
+                elif detected_image_ext:
+                    if not open_with_app('image', detected_image_ext, response_body):
+                        return {}
+
+                elif detected_media_ext:
+                    open_with_app('media', detected_media_ext, response_body)
+
                 elif detected_torrent_ext:
-                    # save torrent to be shown
-                    torrent_filename = \
-                        '.leo_temp_torrent.' + detected_torrent_ext
-                    with open(torrent_filename, 'wb') as fp_torrent:
-                        fp_torrent.write(response_body)
-                    # open torrent if a command is available
-                    if os.path.isfile('/usr/bin/rtorrent'):
-                        os.system('rtorrent ' + torrent_filename)
-                    # remove torrent after opening
-                    if os.path.isfile(torrent_filename):
-                        try:
-                            os.remove(torrent_filename)
-                        except BaseException:
-                            pass
+                    open_with_app('torrent', detected_torrent_ext, response_body)
+
                 elif detected_archive_ext:
                     # save archive to Downloads
                     home_dir = str(Path.home())
@@ -837,6 +814,64 @@ def handle_args(args) -> None:
         sys.exit(0)
 
 
+def open_with_app(file_type: str, detected_ext: str, response_body) -> bool:
+    tmp_filename = f".leo_{file_type}_image." + detected_ext
+
+    available_openers = []
+
+    i = 0
+    lst = "\n"
+
+    for appdata in config['apps'][file_type]:
+        if shutil.which(appdata[0]):
+            cmd = ' '.join(appdata)
+            available_openers.append(cmd)
+            lst = F"{lst}{i}: {cmd}\n"
+
+            i = i + 1
+
+    if not (len(available_openers)):
+        log_error(F"have no app available to open {detected_ext}-file")
+
+        return False
+
+    while True:
+        chosen = get_user_input(f"{hlt['bold']}{hlt['unfocus_color']}" +
+                                F"Select app to open {detected_ext}-file. Hit enter for default(the first) one" +
+                                f"{lst}\n: {hlt['reset']}")
+
+        try:
+            chosen = int(chosen)
+        except:
+            if chosen.strip() == "":
+                chosen = 0
+
+                break
+            else:
+                log_error('Invalid input', chosen)
+                continue
+
+        if chosen in range(0, len(available_openers)):
+            break
+        else:
+            log_error('Out of bound input', chosen)
+            continue
+
+    with open(tmp_filename, 'wb') as fp:
+        fp.write(response_body)
+
+    os.system(available_openers[int(chosen)] + ' ' + tmp_filename)
+
+    # remove image after display
+    if os.path.isfile(tmp_filename):
+        try:
+            os.remove(tmp_filename)
+        except BaseException:
+            pass
+
+    return True
+
+
 if __name__ == "__main__":
     URL = ""
     OLD_URL = ""
@@ -946,6 +981,7 @@ if __name__ == "__main__":
                 FIRST = False
             else:
                 URL = get_user_input("(URL/Num): ")
+                URL = URL.strip()
             if URL == "":
                 continue
         except EOFError:
