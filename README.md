@@ -41,7 +41,7 @@
 * Lets you use a bookmark file (uses ~/leo-gmi-bookmark.gmi)
 * Lest you read ```.gmi```, ```.gmni```, ```.gemini``` files (use --url==file://path/some-file.gmi)
 * Lets you open image/media files using external apps (list of apps can be configured in config.json)
-* 
+
 ### Contributing
 
 Fork the repo and make a PR! That's all :) You can alternatively send me an e-mail with your patch.
