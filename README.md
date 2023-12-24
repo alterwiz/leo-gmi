@@ -38,7 +38,10 @@
 * Passes torture tests at gemini://gemini.conman.org/test/torture/ (Save for the final few Unicode ones, but Unicode support is hard)
 * formatted text output with arbitrary wrapping support
 * Lets you save a list of URLs to a file for further viewing / opening in another window
-
+* Lets you use a bookmark file (uses ~/leo-gmi-bookmark.gmi)
+* Lest you read ```.gmi```, ```.gmni```, ```.gemini``` files (use --url==file://path/some-file.gmi)
+* let you open image/media files using external apps (list of apps can be configured in config.json)
+* 
 ### Contributing
 
 Fork the repo and make a PR! That's all :) You can alternatively send me an e-mail with your patch.
