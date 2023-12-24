@@ -40,7 +40,7 @@
 * Lets you save a list of URLs to a file for further viewing / opening in another window
 * Lets you use a bookmark file (uses ~/leo-gmi-bookmark.gmi)
 * Lest you read ```.gmi```, ```.gmni```, ```.gemini``` files (use --url==file://path/some-file.gmi)
-* let you open image/media files using external apps (list of apps can be configured in config.json)
+* Lets you open image/media files using external apps (list of apps can be configured in config.json)
 * 
 ### Contributing
 
