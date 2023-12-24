@@ -744,6 +744,69 @@ def saveurl(args: [], browser: Browser) -> None:
         except OSError:
             log_error("Could not save files.")
 
+def bookmark(args: [], browser: Browser) -> None:
+    home = os.getenv("HOME")
+    path = f'{home}/leo-gmi-bookmark.gmi'
+    bookmark_content = load_file_content(path)
+
+    if bookmark_content:
+        header_content = [
+            "```",
+            " ___            _                      _",
+            "| _ ) ___  ___ | |__ _ __   __ _  _ _ | |__",
+            "| _ \\/ _ \\/ _ \\| / /| '  \\ / _` || '_|| / /",
+            "|___/\\___/\\___/|_\\_\\|_|_|_|\\__/_||_|  |_\\_\\",
+            "```"
+        ]
+        browser._render(header_content + bookmark_content)
+    else:
+        log_error('There is no bookmark yet. The "tb" command adds current url as a bookmark')
+
+def tobookmark(args: [], browser: Browser) -> None:
+    if not browser.current_url:
+        log_error('The current url cannot be bookmarked because it is empty')
+        return
+
+    mode = "w"
+    home = os.getenv("HOME")
+    path = f'{home}/leo-gmi-bookmark.gmi'
+
+    args = args[1:]
+    lines = []
+
+    label = ''
+    if not args:
+        lines.append('=>' + browser.current_url)
+    else:
+        for arg in args:
+            label = f'{label} {arg}'
+
+        lines.append(f'=>{browser.current_url} {label}')
+    try:
+        can_write(path)
+    except ValueError:
+        log_error("Filename was empty.")
+        return
+    except FileExistsError:
+        mode = "a"
+        pass
+    except IsADirectoryError:
+        log_error("Supplied path is a directory.")
+        return
+    except PermissionError:
+        log_error(f"Cannot write to {path}: Insufficient permissions")
+        return
+    except NotADirectoryError:
+        parent = os.path.dirname(path)
+        log_error(f"Cannot write to {parent}: No such directory")
+        return
+    with open(path, mode, encoding='utf-8') as fp_save:
+        try:
+            fp_save.writelines(map(lambda a: a + "\n", lines))
+            log_info("Saved bookmark successfully.")
+        except OSError:
+            log_error("Could not save files.")
+
 
 def printurl(args: [], browser: Browser) -> None:
     if (len(args)) == 1:
@@ -774,6 +837,19 @@ def load_default_config() -> {}:
             log_error(f"Error reading config from {config_file_loc}")
             quit_app(None, None)
     return None
+
+
+def load_file_content(path) -> []:
+    if os.path.isfile(path):
+        try:
+            with open(path, "r",
+                      encoding='utf-8') as fp:
+                content = fp.readlines()
+                return content
+        except OSError:
+            log_error(f"Error reading content from {path}")
+
+    return []
 
 
 def get_config_path(silent: bool = True) -> str:
@@ -944,6 +1020,14 @@ if __name__ == "__main__":
             "fn": saveurl,
             "help": "(Usage: saveurl FILENAME [n1] [n2] ...) Save the URLs of the links with numbers n1, n2, and so on to a file in the current working directory called FILENAME. If no number is specified, it saves the current URL."
         },
+        "tobookmark|tb": {
+            "fn": tobookmark,
+            "help": "(Usage: tobookmark label...) Save the current URL into current user leo-gmi-bookmark.gmi file"
+        },
+        "bookmark|rb": {
+            "fn": bookmark,
+            "help": "(Usage: bookmark) read current user leo-gmi-bookmark.gmi file"
+        },
         "inspect|i": {
             "fn": browser.inspect,
             "help": "Displays the raw gemtext of the current page."
@@ -990,6 +1074,20 @@ if __name__ == "__main__":
             continue
         _TYPE = get_input_type(URL)
         if _TYPE == 0:
+            # a gmi file from filesystem
+            if URL.startswith("file://") and (URL.endswith(".gmi") or URL.endswith(".gmni") or URL.endswith(".gemini")):
+                gmi_file_path = URL.replace('file://', '')
+
+                if not gmi_file_path.startswith('/'):
+                    gmi_file_path = os.getcwd() + '/' + gmi_file_path
+
+                if os.path.isfile(gmi_file_path) and os.access(gmi_file_path, os.R_OK):
+                    content = load_file_content(gmi_file_path)
+                    browser._render(content)
+                elif not FETCH:
+                    log_error(f'Unable to read file {gmi_file_path}')
+                continue
+
             # text url
             _URL = validate_url(URL, browser.current_host,
                                 browser.current_url, True)
