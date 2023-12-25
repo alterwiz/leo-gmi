@@ -2,7 +2,9 @@
 
 ## a gemini client written in Python 3.
 
-#### (Linux-only, Windows support with WSL)    
+#### (Linux-only, Windows support with WSL)
+##### Mac
+Works on PPC MAc (Sorbet Leopard), Intel Mac (Ventura), Apple Silicon Mac (Sonoma). python 3.12
 
 ### Instructions for use:
 0) `$ pip install leo-gmi`
